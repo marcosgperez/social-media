@@ -1,8 +1,16 @@
 import type { AppProps } from "next/app";
-import "../styles/global.scss";
+import StoreProvider from "@/lib/StoreProvider";
+import { AuthHydration } from "@/components/AuthHydration";
+import "../styles/globals.css";
 
 const MyApp = ({ Component, pageProps }: AppProps) => {
-  return <Component {...pageProps} />;
+  return (
+    <StoreProvider>
+      <AuthHydration>
+        <Component {...pageProps} />
+      </AuthHydration>
+    </StoreProvider>
+  );
 };
 
 export default MyApp;
