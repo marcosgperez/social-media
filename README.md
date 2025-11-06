@@ -69,7 +69,61 @@ https://challenge.marcosfs.dev/
 
 ---
 
-## Instalación y Desarrollo
+## 🚀 Inicio Rápido con Docker (Recomendado)
+
+**La forma más fácil de ejecutar el proyecto localmente sin configuración:**
+
+```bash
+# 1. Clonar el repositorio
+git clone <repo-url>
+cd social-media
+
+# 2. Levantar todo con un solo comando
+docker-compose up --build
+
+# 3. Abrir en el navegador
+# http://localhost:3000
+```
+
+¡Eso es todo! Docker levantará automáticamente:
+- ✅ Base de datos PostgreSQL con datos de prueba
+- ✅ Aplicación Next.js lista para usar
+- ✅ Todo configurado y funcionando
+
+### Usuarios de Prueba
+
+Una vez levantado, puedes usar estos usuarios para probar:
+
+| Email | Username 
+|-------|----------
+| `juan@example.com` | `juanperez`
+| `maria@example.com` | `mariagarcia`
+| `carlos@example.com` | `carloslopez`
+| `ana@example.com` | `anamartinez`
+
+**Nota:** En modo Docker no necesitas contraseña para login (solo email).
+
+### Comandos Docker Útiles
+
+```bash
+# Detener los contenedores
+docker-compose down
+
+# Ver logs
+docker-compose logs -f
+
+# Reiniciar solo la app
+docker-compose restart app
+
+# Limpiar todo (incluye volúmenes de DB)
+docker-compose down -v
+```
+
+---
+
+## Instalación Manual (Desarrollo Local)
+
+Si prefieres ejecutar sin Docker:
 
 ```bash
 # Instalar dependencias
@@ -89,7 +143,7 @@ npm run storybook
 npm run build
 ```
 
-### Variables de Entorno Requeridas
+### Variables de Entorno Requeridas (Solo para desarrollo manual)
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=

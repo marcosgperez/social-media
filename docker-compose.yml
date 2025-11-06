@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: social-media-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: social_user
+      POSTGRES_PASSWORD: social_pass_2024
+      POSTGRES_DB: social_media_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U social_user -d social_media_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - social-network
+
+  # Aplicación Next.js
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: social-media-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # Database - Supabase puede usar PostgreSQL directo con esta URL
+      DATABASE_URL: postgresql://social_user:social_pass_2024@postgres:5432/social_media_db
+      
+      # NextAuth
+      NEXTAUTH_SECRET: dev-secret-key-change-in-production-12345678
+      NEXTAUTH_URL: http://localhost:3000
+      
+      # Google OAuth (opcional - puede dejarse vacío para desarrollo local)
+      GOOGLE_CLIENT_ID: ""
+      GOOGLE_CLIENT_SECRET: ""
+      
+      # Supabase - configuración para usar PostgreSQL local
+      # Nota: Supabase JS client requiere estas variables pero usaremos PostgreSQL directo
+      NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1bW15IiwiYXVkIjoiYXV0aGVudGljYXRlZCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNjQ1MTkyMDAwLCJleHAiOjE5NjA3NjgwMDB9.dummy-key-for-local-dev
+      SUPABASE_SERVICE_ROLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1bW15Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTY0NTE5MjAwMCwiZXhwIjoxOTYwNzY4MDAwfQ.dummy-service-key-for-local-dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - social-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  social-network:
+    driver: bridge

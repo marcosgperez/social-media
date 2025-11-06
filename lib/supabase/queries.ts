@@ -1,9 +1,26 @@
 import { supabase } from './client';
 import type { Database } from './types';
 
+// Importar queries de PostgreSQL directo
+import { 
+  getUserByEmailPg, 
+  getUserByUsernamePg, 
+  createUserPg, 
+  getTimelinePg,
+  createPostPg,
+  likePostPg,
+  unlikePostPg,
+  getUserLikedPostsPg,
+  hasUserLikedPostPg,
+  getPostByIdPg
+} from './queries-pg';
+
 type User = Database['public']['Tables']['users']['Row'];
 type Post = Database['public']['Tables']['posts']['Row'];
 type PostDetails = Database['public']['Views']['post_details']['Row'];
+
+// Detectar si estamos usando PostgreSQL directo
+const useDirectPg = !!process.env.DATABASE_URL && typeof window === 'undefined';
 
 /**
  * Get user by ID
@@ -23,6 +40,10 @@ export async function getUserById(userId: string): Promise<User> {
  * Get user by email
  */
 export async function getUserByEmail(email: string): Promise<User | null> {
+  if (useDirectPg) {
+    return await getUserByEmailPg(email);
+  }
+  
   const { data, error } = await supabase
     .from('users')
     .select('*')
@@ -37,6 +58,10 @@ export async function getUserByEmail(email: string): Promise<User | null> {
  * Get user by username
  */
 export async function getUserByUsername(username: string): Promise<User | null> {
+  if (useDirectPg) {
+    return await getUserByUsernamePg(username);
+  }
+  
   const { data, error } = await supabase
     .from('users')
     .select('*')
@@ -51,7 +76,11 @@ export async function getUserByUsername(username: string): Promise<User | null> 
  * Create a new user
  */
 export async function createUser(user: Database['public']['Tables']['users']['Insert']): Promise<User> {
-  const { data, error } = await supabase
+  if (useDirectPg) {
+    return await createUserPg(user);
+  }
+  
+  const { data, error} = await supabase
     .from('users')
     .insert(user)
     .select()
@@ -98,6 +127,10 @@ export async function getUserStats(userId: string) {
  * Get timeline (all posts ordered by date)
  */
 export async function getTimeline(limit: number = 50, offset: number = 0) {
+  if (useDirectPg) {
+    return await getTimelinePg(limit, offset);
+  }
+  
   const { data, error } = await supabase
     .from('timeline')
     .select('*')
@@ -126,6 +159,10 @@ export async function getPostsByUser(userId: string, limit: number = 50) {
  * Get post by ID with details
  */
 export async function getPostById(postId: string): Promise<PostDetails> {
+  if (useDirectPg) {
+    return await getPostByIdPg(postId);
+  }
+  
   const { data, error } = await supabase
     .from('post_details')
     .select('*')
@@ -140,6 +177,10 @@ export async function getPostById(postId: string): Promise<PostDetails> {
  * Create a new post
  */
 export async function createPost(post: Database['public']['Tables']['posts']['Insert']): Promise<Post> {
+  if (useDirectPg) {
+    return await createPostPg(post);
+  }
+  
   const { data, error } = await supabase
     .from('posts')
     .insert(post)
@@ -184,6 +225,10 @@ export async function getReplies(postId: string) {
  * Like a post
  */
 export async function likePost(userId: string, postId: string) {
+  if (useDirectPg) {
+    return await likePostPg(userId, postId);
+  }
+  
   const { data, error } = await supabase
     .from('likes')
     .insert({ user_id: userId, post_id: postId })
@@ -198,6 +243,10 @@ export async function likePost(userId: string, postId: string) {
  * Unlike a post
  */
 export async function unlikePost(userId: string, postId: string) {
+  if (useDirectPg) {
+    return await unlikePostPg(userId, postId);
+  }
+  
   const { error } = await supabase
     .from('likes')
     .delete()
@@ -211,6 +260,10 @@ export async function unlikePost(userId: string, postId: string) {
  * Check if user liked a post
  */
 export async function hasUserLikedPost(userId: string, postId: string) {
+  if (useDirectPg) {
+    return await hasUserLikedPostPg(userId, postId);
+  }
+  
   const { data, error } = await supabase
     .from('likes')
     .select('id')

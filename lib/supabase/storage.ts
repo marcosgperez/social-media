@@ -1,6 +1,7 @@
 import { supabase } from './client';
 
 const BUCKET_NAME = 'post-images';
+const useDirectPg = !!process.env.DATABASE_URL && typeof window === 'undefined';
 
 /**
  * Upload an image to Supabase Storage
@@ -9,6 +10,14 @@ const BUCKET_NAME = 'post-images';
  * @returns Public URL of the uploaded image
  */
 export async function uploadImage(file: File, userId: string): Promise<string> {
+  // En modo Docker, convertir a base64 y retornar data URL
+  if (useDirectPg) {
+    const buffer = await file.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+    const mimeType = file.type || 'image/jpeg';
+    return `data:${mimeType};base64,${base64}`;
+  }
+
   // Generate unique filename
   const fileExt = file.name.split('.').pop();
   const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;

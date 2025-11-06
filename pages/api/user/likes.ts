@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { supabase } from '@/lib/supabase/client';
+import { getUserLikedPostsPg } from '@/lib/supabase/queries-pg';
+
+const useDirectPg = !!process.env.DATABASE_URL;
 
 export default async function handler(
   req: NextApiRequest,
@@ -23,16 +25,21 @@ export default async function handler(
     const decodedToken = Buffer.from(token, 'base64').toString('utf-8');
     const [userId] = decodedToken.split(':');
 
-    const { data, error } = await supabase
-      .from('likes')
-      .select('post_id')
-      .eq('user_id', userId);
+    let likedPostIds: string[] = [];
 
-    if (error) {
-      throw error;
+    if (useDirectPg) {
+      const data = await getUserLikedPostsPg(userId);
+      likedPostIds = data?.map((like: { post_id: string }) => like.post_id) || [];
+    } else {
+      const { supabase } = await import('@/lib/supabase/client');
+      const { data, error } = await supabase
+        .from('likes')
+        .select('post_id')
+        .eq('user_id', userId);
+
+      if (error) throw error;
+      likedPostIds = data?.map(like => like.post_id) || [];
     }
-
-    const likedPostIds = data?.map(like => like.post_id) || [];
 
     return res.status(200).json({ likedPostIds });
   } catch (error) {
