@@ -3,11 +3,5 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "installCommand": "npm install",
-  "framework": "nextjs",
-  "rewrites": [
-    {
-      "source": "/storybook/:path*",
-      "destination": "https://tu-storybook-separado.vercel.app/:path*"
-    }
-  ]
+  "framework": "nextjs"
 }
