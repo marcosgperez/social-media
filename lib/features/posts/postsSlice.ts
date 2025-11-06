@@ -61,10 +61,20 @@ export const postsSlice = createSlice({
     addPost: (state, action: PayloadAction<Post>) => {
       state.posts.unshift(action.payload);
     },
-    likePost: (state, action: PayloadAction<string>) => {
-      const post = state.posts.find(p => p.id === action.payload);
+    likePost: (state, action: PayloadAction<{ postId: string; liked: boolean }>) => {
+      const post = state.posts.find(p => p.id === action.payload.postId);
       if (post) {
-        post.likes += 1;
+        if (action.payload.liked) {
+          post.likes += 1;
+        } else {
+          post.likes = Math.max(0, post.likes - 1);
+        }
+      }
+    },
+    updatePost: (state, action: PayloadAction<Post>) => {
+      const index = state.posts.findIndex(p => p.id === action.payload.id);
+      if (index !== -1) {
+        state.posts[index] = action.payload;
       }
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
@@ -123,6 +133,7 @@ export const {
   setPosts,
   addPost,
   likePost,
+  updatePost,
   setLoading,
   setError,
   clearPosts,

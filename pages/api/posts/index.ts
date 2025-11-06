@@ -20,7 +20,7 @@ export default async function handler(
       return res.status(401).json({ message: 'No autorizado' });
     }
 
-    const { content } = req.body;
+    const { content, imageUrl } = req.body;
     if (!content || !content.trim()) {
       return res.status(400).json({ message: 'El contenido es requerido' });
     }
@@ -29,6 +29,7 @@ export default async function handler(
     const dbPost = await createPost({
       user_id: userId,
       content: content.trim(),
+      media_url: imageUrl || null,
     });
     const { getPostById } = await import('@/lib/supabase/queries');
     const postDetails = await getPostById(dbPost.id);

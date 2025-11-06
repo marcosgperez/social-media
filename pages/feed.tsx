@@ -1,13 +1,26 @@
 import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { addPost, likePost, setPosts } from '@/lib/features/posts/postsSlice';
 import { selectCurrentUser, selectCurrentToken } from '@/lib/features/auth/authSlice';
 import { logoutUser } from '@/lib/features/auth/authThunks';
-import type { Post } from '@/lib/features/posts/postsSlice';
+import { setPosts, addPost, likePost, updatePost } from '@/lib/features/posts/postsSlice';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { PostCard } from '@/components/PostCard';
+
+interface Post {
+  id: string;
+  author: {
+    username: string;
+    avatar: string;
+  };
+  content: string;
+  likes: number;
+  comments: number;
+  createdAt: string;
+  image?: string;
+}
 
 interface Props {
   initialPosts: Post[];
@@ -61,12 +74,41 @@ const Feed = ({ initialPosts }: Props) => {
   const posts = useAppSelector((state) => state.posts.posts);
   const [newPost, setNewPost] = useState('');
   const [loading, setLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const currentUser = session?.user || user;
+  
   useEffect(() => {
     if (initialPosts.length > 0) {
       dispatch(setPosts(initialPosts));
     }
   }, [initialPosts, dispatch]);
+
+  // Cargar los likes del usuario
+  useEffect(() => {
+    const loadUserLikes = async () => {
+      if (!token) return;
+      
+      try {
+        const response = await fetch('/api/user/likes', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setLikedPosts(new Set(data.likedPostIds));
+        }
+      } catch (error) {
+        console.error('Error al cargar likes:', error);
+      }
+    };
+
+    loadUserLikes();
+  }, [token]);
 
   const handleLogout = async () => {
     if (session) {
@@ -77,42 +119,123 @@ const Feed = ({ initialPosts }: Props) => {
     }
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Por favor selecciona una imagen válida');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('La imagen es muy grande. Máximo 5MB');
+        return;
+      }
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
+
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPost.trim() || !token) return;
     setLoading(true);
     try {
+      let imageUrl = null;
+
+      // Subir imagen si hay una seleccionada
+      if (selectedImage) {
+        setUploadingImage(true);
+        const formData = new FormData();
+        formData.append('image', selectedImage);
+
+        const uploadResponse = await fetch('/api/upload/image', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        if (uploadResponse.ok) {
+          const uploadData = await uploadResponse.json();
+          imageUrl = uploadData.url;
+        } else {
+          throw new Error('Error al subir la imagen');
+        }
+        setUploadingImage(false);
+      }
+
+      // Crear post con o sin imagen
       const response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ content: newPost }),
+        body: JSON.stringify({ content: newPost, imageUrl }),
       });
 
       if (response.ok) {
         const post = await response.json();
         dispatch(addPost(post));
         setNewPost('');
+        setSelectedImage(null);
+        setImagePreview(null);
       }
     } catch (error) {
       console.error('Error al crear post:', error);
+      alert('Error al crear el post');
     } finally {
       setLoading(false);
+      setUploadingImage(false);
     }
   };
 
   const handleLike = async (postId: string) => {
     if (!token) return;
     try {
-      await fetch(`/api/posts/${postId}/like`, {
+      const response = await fetch(`/api/posts/${postId}/like`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      dispatch(likePost(postId));
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Actualizar el estado de liked
+        setLikedPosts(prev => {
+          const newSet = new Set(prev);
+          if (data.liked) {
+            newSet.add(postId);
+          } else {
+            newSet.delete(postId);
+          }
+          return newSet;
+        });
+
+        // Refrescar el post desde la base de datos para obtener el contador actualizado
+        const postResponse = await fetch(`/api/posts/${postId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (postResponse.ok) {
+          const updatedPost = await postResponse.json();
+          dispatch(updatePost(updatedPost));
+        }
+      }
     } catch (error) {
       console.error('Error al dar like:', error);
     }
@@ -149,13 +272,48 @@ const Feed = ({ initialPosts }: Props) => {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
                 rows={3}
               />
-              <button
-                type="submit"
-                disabled={loading || !newPost.trim()}
-                className="px-6 py-3 bg-black text-white font-bold text-sm rounded-lg hover:bg-gray-800 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-              >
-                {loading ? 'Publicando...' : 'Publicar'}
-              </button>
+              
+              {imagePreview && (
+                <div className="relative">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full rounded-lg max-h-64 object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2 bg-black text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-800 transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <label className="px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 hover:border-black transition-all duration-200 cursor-pointer flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span className="text-sm font-medium">
+                    {selectedImage ? 'Cambiar imagen' : 'Agregar imagen'}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    className="hidden"
+                  />
+                </label>
+
+                <button
+                  type="submit"
+                  disabled={loading || uploadingImage || !newPost.trim()}
+                  className="flex-1 px-6 py-3 bg-black text-white font-bold text-sm rounded-lg hover:bg-gray-800 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                >
+                  {uploadingImage ? 'Subiendo imagen...' : loading ? 'Publicando...' : 'Publicar'}
+                </button>
+              </div>
             </form>
           </div>
           <div className="space-y-4">
@@ -167,46 +325,18 @@ const Feed = ({ initialPosts }: Props) => {
               </div>
             ) : (
               posts.map((post) => (
-                <article key={post.id} className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
-                  <div className="flex items-start gap-3 mb-4">
-                    <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center font-bold">
-                      {post.author.username[0].toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="font-bold text-sm text-gray-900">@{post.author.username}</p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(post.createdAt).toLocaleDateString('es-ES', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mb-4">
-                    <p className="text-gray-800">{post.content}</p>
-                    {post.image && (
-                      <img
-                        src={post.image}
-                        alt="Post image"
-                        className="w-full mt-3 rounded-lg object-cover max-h-96"
-                      />
-                    )}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleLike(post.id)}
-                      className="px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 hover:border-black transition-all duration-200"
-                    >
-                      Likes: {post.likes}
-                    </button>
-                    <button className="px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 hover:border-black transition-all duration-200">
-                      Comments: {post.comments}
-                    </button>
-                  </div>
-                </article>
+                <PostCard
+                  key={post.id}
+                  id={post.id}
+                  author={post.author}
+                  content={post.content}
+                  likes={post.likes}
+                  comments={post.comments}
+                  createdAt={post.createdAt}
+                  image={post.image}
+                  onLike={handleLike}
+                  isLiked={likedPosts.has(post.id)}
+                />
               ))
             )}
           </div>
