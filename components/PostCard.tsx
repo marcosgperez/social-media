@@ -1,22 +1,7 @@
 import { useState, useEffect } from "react";
 import { AiFillLike, AiOutlineLike } from "react-icons/ai";
 import { FaRegComment } from "react-icons/fa6";
-
-export interface PostCardProps {
-  id: string;
-  author: {
-    username: string;
-    avatar?: string;
-  };
-  content: string;
-  likes: number;
-  comments: number;
-  createdAt: string;
-  image?: string;
-  onLike?: (postId: string) => void;
-  onComment?: (postId: string) => void;
-  isLiked?: boolean;
-}
+import { PostCardProps } from '@/interfaces';
 
 export const PostCard = ({
   id,

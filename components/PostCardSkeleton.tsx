@@ -1,6 +1,4 @@
-interface PostCardSkeletonProps {
-  withImage?: boolean;
-}
+import { PostCardSkeletonProps } from '@/interfaces';
 
 export const PostCardSkeleton = ({ withImage = false }: PostCardSkeletonProps) => {
   return (

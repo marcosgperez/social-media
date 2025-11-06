@@ -1,15 +1,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Input } from './Input';
-
-export interface LoginFormProps {
-  error?: string | null;
-  loading?: boolean;
-  onSubmit?: (email: string, password: string) => void;
-  onGoogleSignIn?: () => void;
-  showGoogleSignIn?: boolean;
-  showRegisterLink?: boolean;
-}
+import { LoginFormProps } from '@/interfaces';
 
 export const LoginForm = ({
   error = null,

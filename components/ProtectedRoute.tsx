@@ -5,14 +5,9 @@ import { useAppSelector } from '@/lib/hooks';
 import { selectIsAuthenticated, selectAuthLoading } from '@/lib/features/auth/authSlice';
 import { FeedSkeleton } from './FeedSkeleton';
 import { LoginSkeleton } from './LoginSkeleton';
+import { ProtectedRouteProps } from '@/interfaces';
 
-interface Props {
-  children: React.ReactNode;
-  requireAuth?: boolean;
-  loadingSkeleton?: React.ReactNode;
-}
-
-export const ProtectedRoute = ({ children, requireAuth = true, loadingSkeleton }: Props) => {
+export const ProtectedRoute = ({ children, requireAuth = true, loadingSkeleton }: ProtectedRouteProps) => {
   const router = useRouter();
   const { data: session, status } = useSession();
   const isAuthenticated = useAppSelector(selectIsAuthenticated);

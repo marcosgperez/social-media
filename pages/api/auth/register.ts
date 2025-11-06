@@ -1,36 +1,17 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getUserByEmail, getUserByUsername, createUser } from '@/lib/supabase/queries';
-
-interface RegisterRequest {
-  name: string;
-  username: string;
-  email: string;
-  password: string;
-}
-
-interface RegisterResponse {
-  success: boolean;
-  message?: string;
-  token?: string;
-  user?: {
-    id: string;
-    email: string;
-    username: string;
-    name?: string;
-    avatar?: string;
-  };
-}
+import { ApiRegisterRequest, ApiRegisterResponse } from '@/interfaces';
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<RegisterResponse>
+  res: NextApiResponse<ApiRegisterResponse & { user?: { id: string; email: string; username: string; name?: string; avatar?: string } }>
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, message: 'Método no permitido' });
   }
 
   try {
-    const { name, username, email, password } = req.body as RegisterRequest;
+    const { name, username, email, password } = req.body as ApiRegisterRequest;
 
     // Validaciones
     if (!name || !username || !email || !password) {

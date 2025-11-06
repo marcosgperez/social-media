@@ -1,12 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { loginUser, registerUser, logoutUser } from './authThunks';
-
-export interface User {
-  id: string;
-  email: string;
-  username: string;
-  avatar?: string;
-}
+import { User } from '@/interfaces';
 
 interface AuthState {
   user: User | null;
@@ -15,6 +9,8 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
 }
+
+export type { User };
 
 const initialState: AuthState = {
   user: null,

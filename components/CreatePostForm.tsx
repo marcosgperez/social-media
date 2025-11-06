@@ -1,10 +1,5 @@
 import React, { useState } from 'react';
-
-export interface CreatePostFormProps {
-  onSubmit: (content: string, image: File | null) => Promise<void>;
-  loading?: boolean;
-  uploadingImage?: boolean;
-}
+import { CreatePostFormProps } from '@/interfaces';
 
 export const CreatePostForm = ({
   onSubmit,

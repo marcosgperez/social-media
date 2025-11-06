@@ -10,19 +10,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { PostCard } from '@/components/PostCard';
 import { Header } from '@/components/Header';
 import { CreatePostForm } from '@/components/CreatePostForm';
-
-interface Post {
-  id: string;
-  author: {
-    username: string;
-    avatar: string;
-  };
-  content: string;
-  likes: number;
-  comments: number;
-  createdAt: string;
-  image?: string;
-}
+import { Post } from '@/interfaces';
 
 interface Props {
   initialPosts: Post[];

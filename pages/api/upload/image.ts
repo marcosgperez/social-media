@@ -2,18 +2,13 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import formidable, { File } from 'formidable';
 import fs from 'fs';
 import { uploadImage, validateImageFile } from '@/lib/supabase/storage';
+import { UploadResponse } from '@/interfaces';
 
 export const config = {
   api: {
     bodyParser: false,
   },
 };
-
-interface UploadResponse {
-  success: boolean;
-  url?: string;
-  message?: string;
-}
 
 export default async function handler(
   req: NextApiRequest,

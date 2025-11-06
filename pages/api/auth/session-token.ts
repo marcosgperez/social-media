@@ -2,23 +2,11 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from './[...nextauth]';
 import { getUserByEmail } from '@/lib/supabase/queries';
-
-interface SessionTokenResponse {
-  success: boolean;
-  message?: string;
-  token?: string;
-  user?: {
-    id: string;
-    email: string;
-    username: string;
-    name?: string;
-    avatar?: string;
-  };
-}
+import { SessionTokenResponse } from '@/interfaces';
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<SessionTokenResponse>
+  res: NextApiResponse<SessionTokenResponse & { user?: { id: string; email: string; username: string; name?: string; avatar?: string } }>
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({ success: false, message: 'Método no permitido' });

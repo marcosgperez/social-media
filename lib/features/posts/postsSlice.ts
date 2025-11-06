@@ -1,24 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { fetchPosts, createPost, likePostAsync } from './postsThunks';
+import { Post, PostsState } from '@/interfaces';
 
-export interface Post {
-  id: string;
-  author: {
-    username: string;
-    avatar: string;
-  };
-  content: string;
-  image?: string;
-  likes: number;
-  comments: number;
-  createdAt: string;
-}
-
-interface PostsState {
-  posts: Post[];
-  loading: boolean;
-  error: string | null;
-}
+export type { Post };
 
 const initialState: PostsState = {
   posts: [

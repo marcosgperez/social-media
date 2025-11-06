@@ -1,9 +1,4 @@
-export interface HeaderProps {
-  title?: string;
-  userName?: string;
-  onLogout?: () => void;
-  showLogoutButton?: boolean;
-}
+import { HeaderProps } from '@/interfaces';
 
 export const Header = ({
   title = 'Feed',

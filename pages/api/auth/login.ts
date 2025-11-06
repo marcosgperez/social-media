@@ -1,34 +1,17 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getUserByEmail } from '@/lib/supabase/queries';
-
-interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-interface LoginResponse {
-  success: boolean;
-  message?: string;
-  token?: string;
-  user?: {
-    id: string;
-    email: string;
-    username: string;
-    name?: string;
-    avatar?: string;
-  };
-}
+import { ApiLoginRequest, ApiLoginResponse } from '@/interfaces';
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<LoginResponse>
+  res: NextApiResponse<ApiLoginResponse & { user?: { id: string; email: string; username: string; name?: string; avatar?: string } }>
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, message: 'Método no permitido' });
   }
 
   try {
-    const { email, password } = req.body as LoginRequest;
+    const { email, password } = req.body as ApiLoginRequest;
 
     if (!email || !password) {
       return res.status(400).json({
