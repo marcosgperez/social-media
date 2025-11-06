@@ -40,7 +40,7 @@ const Login = () => {
 
   return (
     <ProtectedRoute requireAuth={false}>
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-500 to-purple-700">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-500 to-purple-700 p-5">
         <LoginForm
           error={authError}
           loading={loading}

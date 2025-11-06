@@ -1,6 +1,6 @@
 export const LoginSkeleton = () => {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-500 to-purple-700">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-500 to-purple-700 p-5">
       <div className="bg-white rounded-2xl shadow-2xl p-12 w-full max-w-md">
         <div className="space-y-6">
           <div className="h-9 animate-shimmer rounded w-48"></div>

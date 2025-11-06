@@ -63,7 +63,7 @@ const Register = () => {
 
   return (
     <ProtectedRoute requireAuth={false}>
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-500 to-purple-700">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-500 to-purple-700 p-5">
         <div className="w-full max-w-md mx-4">
           <div className="bg-white rounded-2xl shadow-2xl p-12">
             <h1 className="text-3xl font-bold mb-2 text-gray-900">Crear Cuenta</h1>
