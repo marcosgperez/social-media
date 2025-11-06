@@ -19,6 +19,7 @@ export const PostCard = ({
   const [likesOptimistic, setLikesOptimistic] = useState(likes);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   useEffect(() => {
     if (!isPending) {
@@ -33,6 +34,25 @@ export const PostCard = ({
       return () => clearTimeout(timer);
     }
   }, [isLiked, likes, isPending]);
+
+  useEffect(() => {
+    if (image) {
+      setImageLoaded(false);
+      // Precargar la imagen para detectar si ya está en caché
+      const img = new Image();
+      img.src = image;
+      if (img.complete) {
+        setImageLoaded(true);
+      }
+      
+      // Timeout de seguridad: si después de 10 segundos no cargó, mostrar la imagen de todos modos
+      const timeout = setTimeout(() => {
+        setImageLoaded(true);
+      }, 10000);
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [image]);
 
   const handleLike = () => {
     if (onLike) {
@@ -84,11 +104,20 @@ export const PostCard = ({
       <div className="mb-4">
         <p className="text-gray-800 whitespace-pre-wrap">{content}</p>
         {image && (
-          <img
-            src={image}
-            alt="Post image"
-            className="w-full mt-3 rounded-lg object-cover max-h-96"
-          />
+          <div className="relative w-full mt-3">
+            {!imageLoaded && (
+              <div className="w-full h-96 bg-gray-200 rounded-lg animate-pulse" />
+            )}
+            <img
+              src={image}
+              alt="Post image"
+              className={`w-full rounded-lg object-cover max-h-96 transition-opacity duration-300 ${
+                imageLoaded ? 'opacity-100' : 'opacity-0 absolute top-0 left-0'
+              }`}
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setImageLoaded(true)}
+            />
+          </div>
         )}
       </div>
 
