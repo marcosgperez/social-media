@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { hydrateAuth, setCredentials } from '@/lib/features/auth/authSlice';
+import { hydrateAuth, setCredentials, logout } from '@/lib/features/auth/authSlice';
 import { selectIsAuthenticated } from '@/lib/features/auth/authSlice';
 
 export const AuthHydration = ({ children }: { children: React.ReactNode }) => {
@@ -36,6 +36,8 @@ export const AuthHydration = ({ children }: { children: React.ReactNode }) => {
         } catch (error) {
           console.error('Error al sincronizar sesión de NextAuth:', error);
         }
+      } else if (!session && status === 'unauthenticated' && isAuthenticated) {
+        dispatch(logout());
       }
     };
 
