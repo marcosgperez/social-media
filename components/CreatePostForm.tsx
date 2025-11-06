@@ -39,12 +39,15 @@ export const CreatePostForm = ({
     e.preventDefault();
     if (!newPost.trim()) return;
 
-    await onSubmit(newPost, selectedImage);
-    
-    // Limpiar formulario después de enviar
-    setNewPost('');
-    setSelectedImage(null);
-    setImagePreview(null);
+    try {
+      await onSubmit(newPost, selectedImage);
+      setNewPost('');
+      setSelectedImage(null);
+      setImagePreview(null);
+    } catch (error) {
+      console.error('Error al crear post:', error);
+      alert('Error al crear el post. Por favor intenta de nuevo.');
+    }
   };
 
   return (

@@ -41,6 +41,14 @@
   .animate-like-icon {
     animation: like-bounce 0.4s ease-in-out;
   }
+  
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
+  
+  .animate-progress {
+    animation: progress 2s ease-in-out infinite;
+  }
 }
 
 @keyframes slide-in {
@@ -87,5 +95,28 @@
   }
   75% {
     transform: scale(1.1);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes progress {
+  0% {
+    width: 0%;
+  }
+  50% {
+    width: 70%;
+  }
+  100% {
+    width: 100%;
   }
 }

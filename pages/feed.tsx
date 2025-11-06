@@ -1,15 +1,17 @@
 import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { selectCurrentUser, selectCurrentToken } from '@/lib/features/auth/authSlice';
 import { logoutUser } from '@/lib/features/auth/authThunks';
-import { setPosts, addPost, likePost, updatePost } from '@/lib/features/posts/postsSlice';
+import { setPosts, selectPosts, selectLikedPostIds, selectPostsLoading, selectUploadingImage } from '@/lib/features/posts/postsSlice';
+import { fetchUserLikes, likePostAsync, createPost, createPostWithImage } from '@/lib/features/posts/postsThunks';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { PostCard } from '@/components/PostCard';
 import { Header } from '@/components/Header';
 import { CreatePostForm } from '@/components/CreatePostForm';
+import { PostingProgress } from '@/components/PostingProgress';
 import { Post } from '@/interfaces';
 
 interface Props {
@@ -61,11 +63,10 @@ const Feed = ({ initialPosts }: Props) => {
   const { data: session } = useSession();
   const user = useAppSelector(selectCurrentUser);
   const token = useAppSelector(selectCurrentToken);
-  const posts = useAppSelector((state) => state.posts.posts);
-  const [loading, setLoading] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
-  const currentUser = session?.user || user;
+  const posts = useAppSelector(selectPosts);
+  const likedPostIds = useAppSelector(selectLikedPostIds);
+  const loading = useAppSelector(selectPostsLoading);
+  const uploadingImage = useAppSelector(selectUploadingImage);
   
   useEffect(() => {
     if (initialPosts.length > 0) {
@@ -73,29 +74,12 @@ const Feed = ({ initialPosts }: Props) => {
     }
   }, [initialPosts, dispatch]);
 
-  // Cargar los likes del usuario
+  // Cargar los likes del usuario usando Redux
   useEffect(() => {
-    const loadUserLikes = async () => {
-      if (!token) return;
-      
-      try {
-        const response = await fetch('/api/user/likes', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setLikedPosts(new Set(data.likedPostIds));
-        }
-      } catch (error) {
-        console.error('Error al cargar likes:', error);
-      }
-    };
-
-    loadUserLikes();
-  }, [token]);
+    if (token) {
+      dispatch(fetchUserLikes(token));
+    }
+  }, [token, dispatch]);
 
   const handleLogout = async () => {
     if (session) {
@@ -108,95 +92,17 @@ const Feed = ({ initialPosts }: Props) => {
 
   const handleCreatePost = async (content: string, selectedImage: File | null) => {
     if (!content.trim() || !token) return;
-    setLoading(true);
-    try {
-      let imageUrl = null;
-
-      // Subir imagen si hay una seleccionada
-      if (selectedImage) {
-        setUploadingImage(true);
-        const formData = new FormData();
-        formData.append('image', selectedImage);
-
-        const uploadResponse = await fetch('/api/upload/image', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        });
-
-        if (uploadResponse.ok) {
-          const uploadData = await uploadResponse.json();
-          imageUrl = uploadData.url;
-        } else {
-          throw new Error('Error al subir la imagen');
-        }
-        setUploadingImage(false);
-      }
-
-      // Crear post con o sin imagen
-      const response = await fetch('/api/posts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ content, imageUrl }),
-      });
-
-      if (response.ok) {
-        const post = await response.json();
-        dispatch(addPost(post));
-      }
-    } catch (error) {
-      console.error('Error al crear post:', error);
-      alert('Error al crear el post');
-    } finally {
-      setLoading(false);
-      setUploadingImage(false);
+    
+    if (selectedImage) {
+      await dispatch(createPostWithImage({ content, image: selectedImage, token })).unwrap();
+    } else {
+      await dispatch(createPost({ content, token })).unwrap();
     }
   };
 
   const handleLike = async (postId: string) => {
     if (!token) return;
-    try {
-      const response = await fetch(`/api/posts/${postId}/like`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        
-        // Actualizar el estado de liked
-        setLikedPosts(prev => {
-          const newSet = new Set(prev);
-          if (data.liked) {
-            newSet.add(postId);
-          } else {
-            newSet.delete(postId);
-          }
-          return newSet;
-        });
-
-        // Refrescar el post desde la base de datos para obtener el contador actualizado
-        const postResponse = await fetch(`/api/posts/${postId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (postResponse.ok) {
-          const updatedPost = await postResponse.json();
-          dispatch(updatePost(updatedPost));
-        }
-      }
-    } catch (error) {
-      console.error('Error al dar like:', error);
-    }
+    dispatch(likePostAsync({ postId, token }));
   };
 
   return (
@@ -208,6 +114,8 @@ const Feed = ({ initialPosts }: Props) => {
           onLogout={handleLogout}
           showLogoutButton={true}
         />
+
+        <PostingProgress isUploading={uploadingImage} isPosting={loading} />
 
         <main className="max-w-3xl mx-auto px-4 pt-24 pb-6 space-y-5">
           <CreatePostForm
@@ -235,7 +143,7 @@ const Feed = ({ initialPosts }: Props) => {
                   createdAt={post.createdAt}
                   image={post.image}
                   onLike={handleLike}
-                  isLiked={likedPosts.has(post.id)}
+                  isLiked={likedPostIds.includes(post.id)}
                 />
               ))
             )}
