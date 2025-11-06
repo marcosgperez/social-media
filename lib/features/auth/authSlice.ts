@@ -28,7 +28,7 @@ export const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setCredentials: (state, action: PayloadAction<{ user: User; token: string }>) => {
+    setCredentials: (state, action: PayloadAction<{ user: User; token: string; isOAuth?: boolean }>) => {
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.isAuthenticated = true;
@@ -36,6 +36,11 @@ export const authSlice = createSlice({
       if (typeof window !== 'undefined') {
         localStorage.setItem('auth_token', action.payload.token);
         localStorage.setItem('auth_user', JSON.stringify(action.payload.user));
+        if (action.payload.isOAuth) {
+          sessionStorage.setItem('nextauth_session', 'true');
+        } else {
+          sessionStorage.removeItem('nextauth_session');
+        }
       }
     },
     logout: (state) => {

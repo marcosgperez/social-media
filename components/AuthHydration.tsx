@@ -30,14 +30,20 @@ export const AuthHydration = ({ children }: { children: React.ReactNode }) => {
                   avatar: data.user.avatar,
                 },
                 token: data.token,
+                isOAuth: true,
               }));
             }
           }
         } catch (error) {
           console.error('Error al sincronizar sesión de NextAuth:', error);
         }
-      } else if (!session && status === 'unauthenticated' && isAuthenticated) {
-        dispatch(logout());
+      }
+      else if (!session && status === 'unauthenticated' && isAuthenticated) {
+        const wasNextAuthSession = sessionStorage.getItem('nextauth_session');
+        if (wasNextAuthSession === 'true') {
+          sessionStorage.removeItem('nextauth_session');
+          dispatch(logout());
+        }
       }
     };
 
