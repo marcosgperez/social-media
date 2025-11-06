@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { Input } from './Input';
 
 export interface LoginFormProps {
   error?: string | null;
@@ -48,37 +49,25 @@ export const LoginForm = ({
       )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="flex flex-col">
-          <label htmlFor="email" className="text-sm font-semibold mb-2 text-gray-700">
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-            placeholder="tu@email.com"
-          />
-        </div>
+        <Input
+          type="email"
+          name="email"
+          label="Email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+          placeholder="tu@email.com"
+        />
 
-        <div className="flex flex-col">
-          <label htmlFor="password" className="text-sm font-semibold mb-2 text-gray-700">
-            Contraseña
-          </label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-            placeholder="••••••••"
-          />
-        </div>
+        <Input
+          type="password"
+          name="password"
+          label="Contraseña"
+          value={formData.password}
+          onChange={handleChange}
+          required
+          placeholder="••••••••"
+        />
 
         <button
           type="submit"

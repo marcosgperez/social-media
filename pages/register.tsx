@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { registerUser } from '@/lib/features/auth/authThunks';
 import { selectAuthError, clearError } from '@/lib/features/auth/authSlice';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { Input } from '@/components/Input';
 
 export const getServerSideProps: GetServerSideProps = async () => {
   return {
@@ -76,96 +77,62 @@ const Register = () => {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="flex flex-col">
-                <label htmlFor="name" className="text-sm font-semibold mb-2 text-gray-700">
-                  Nombre Completo
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  placeholder="Juan Pérez"
-                />
-              </div>
+              <Input
+                type="text"
+                name="name"
+                label="Nombre Completo"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                placeholder="Juan Pérez"
+              />
 
-              <div className="flex flex-col">
-                <label htmlFor="username" className="text-sm font-semibold mb-2 text-gray-700">
-                  Nombre de Usuario
-                </label>
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  required
-                  minLength={3}
-                  maxLength={20}
-                  pattern="[a-zA-Z0-9_]+"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  placeholder="juanperez"
-                />
-                <span className="text-xs text-gray-500 mt-1">
-                  Solo letras, números y guiones bajos (3-20 caracteres)
-                </span>
-              </div>
+              <Input
+                type="text"
+                name="username"
+                label="Nombre de Usuario"
+                value={formData.username}
+                onChange={handleChange}
+                required
+                minLength={3}
+                maxLength={20}
+                pattern="[a-zA-Z0-9_]+"
+                placeholder="juanperez"
+                helperText="Solo letras, números y guiones bajos (3-20 caracteres)"
+              />
 
-              <div className="flex flex-col">
-                <label htmlFor="email" className="text-sm font-semibold mb-2 text-gray-700">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  placeholder="tu@email.com"
-                />
-              </div>
+              <Input
+                type="email"
+                name="email"
+                label="Email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                placeholder="tu@email.com"
+              />
 
-              <div className="flex flex-col">
-                <label htmlFor="password" className="text-sm font-semibold mb-2 text-gray-700">
-                  Contraseña
-                </label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  minLength={6}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  placeholder="••••••••"
-                />
-                <span className="text-xs text-gray-500 mt-1">
-                  Mínimo 6 caracteres
-                </span>
-              </div>
+              <Input
+                type="password"
+                name="password"
+                label="Contraseña"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                minLength={6}
+                placeholder="••••••••"
+                helperText="Mínimo 6 caracteres"
+              />
 
-              <div className="flex flex-col">
-                <label htmlFor="confirmPassword" className="text-sm font-semibold mb-2 text-gray-700">
-                  Confirmar Contraseña
-                </label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                  minLength={6}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  placeholder="••••••••"
-                />
-              </div>
+              <Input
+                type="password"
+                name="confirmPassword"
+                label="Confirmar Contraseña"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+                minLength={6}
+                placeholder="••••••••"
+              />
 
               <button
                 type="submit"
