@@ -1,6 +1,7 @@
 import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { addPost, likePost, setPosts } from '@/lib/features/posts/postsSlice';
@@ -57,13 +58,13 @@ export const getServerSideProps: GetServerSideProps<Props> = async () => {
 const Feed = ({ initialPosts }: Props) => {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { data: session } = useSession();
   const user = useAppSelector(selectCurrentUser);
   const token = useAppSelector(selectCurrentToken);
   const posts = useAppSelector((state) => state.posts.posts);
   const [newPost, setNewPost] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // Sincronizar posts iniciales de SSR con Redux
+  const currentUser = session?.user || user;
   useEffect(() => {
     if (initialPosts.length > 0) {
       dispatch(setPosts(initialPosts));
@@ -71,14 +72,17 @@ const Feed = ({ initialPosts }: Props) => {
   }, [initialPosts, dispatch]);
 
   const handleLogout = async () => {
-    await dispatch(logoutUser());
-    router.push('/login');
+    if (session) {
+      await signOut({ callbackUrl: '/login' });
+    } else {
+      await dispatch(logoutUser());
+      router.push('/login');
+    }
   };
 
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPost.trim() || !token) return;
-
     setLoading(true);
     try {
       const response = await fetch('/api/posts', {
@@ -104,7 +108,6 @@ const Feed = ({ initialPosts }: Props) => {
 
   const handleLike = async (postId: string) => {
     if (!token) return;
-    
     try {
       await fetch(`/api/posts/${postId}/like`, {
         method: 'POST',
@@ -125,7 +128,9 @@ const Feed = ({ initialPosts }: Props) => {
           <div className="max-w-3xl mx-auto px-4 py-4 flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">Feed</h1>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">@{user?.username}</span>
+              <span className="text-sm text-gray-600">
+                {session?.user?.name || `@${user?.username}`}
+              </span>
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 bg-black text-white font-bold text-sm rounded-lg hover:bg-gray-800 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"

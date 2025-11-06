@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
 import { useAppSelector } from '@/lib/hooks';
 import { selectIsAuthenticated, selectAuthLoading } from '@/lib/features/auth/authSlice';
 
@@ -10,20 +11,22 @@ interface Props {
 
 export const ProtectedRoute = ({ children, requireAuth = true }: Props) => {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const isLoading = useAppSelector(selectAuthLoading);
-
+  const isAuthenticatedCombined = isAuthenticated || !!session;
+  const isLoadingCombined = isLoading || status === 'loading';
   useEffect(() => {
-    if (!isLoading) {
-      if (requireAuth && !isAuthenticated) {
+    if (!isLoadingCombined) {
+      if (requireAuth && !isAuthenticatedCombined) {
         router.push('/login');
-      } else if (!requireAuth && isAuthenticated) {
+      } else if (!requireAuth && isAuthenticatedCombined) {
         router.push('/feed');
       }
     }
-  }, [isAuthenticated, isLoading, requireAuth, router]);
+  }, [isAuthenticatedCombined, isLoadingCombined, requireAuth, router]);
 
-  if (isLoading) {
+  if (isLoadingCombined) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p className="text-base text-gray-600">Cargando...</p>
@@ -31,11 +34,11 @@ export const ProtectedRoute = ({ children, requireAuth = true }: Props) => {
     );
   }
 
-  if (requireAuth && !isAuthenticated) {
+  if (requireAuth && !isAuthenticatedCombined) {
     return null;
   }
 
-  if (!requireAuth && isAuthenticated) {
+  if (!requireAuth && isAuthenticatedCombined) {
     return null;
   }
 
