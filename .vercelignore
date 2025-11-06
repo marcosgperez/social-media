@@ -1,0 +1,5 @@
+# Ignorar archivos innecesarios para el deploy de Storybook
+.next
+node_modules
+.git
+.env.local

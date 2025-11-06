@@ -9,7 +9,7 @@
     "lint": "eslint",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "deploy-storybook": "npm run build-storybook && echo 'Build completado. Sube storybook-static/ a Vercel como proyecto separado'"
+    "deploy-storybook": "npm run build-storybook && vercel --prod --cwd storybook-static"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.10.1",

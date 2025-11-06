@@ -17,5 +17,6 @@
 *.tsbuildinfo
 next-env.d.ts
 
-# storybook
+# storybook build output
+storybook-static
 .storybook
