@@ -15,34 +15,31 @@ interface Props {
 
 export const getServerSideProps: GetServerSideProps<Props> = async () => {
   try {
-    const mockPosts: Post[] = [
-      {
-        id: '1',
+    // Importar dinámicamente para evitar problemas con SSR
+    const { getTimeline } = await import('@/lib/supabase/queries');
+    const timelinePosts = await getTimeline(50);
+        const posts: Post[] = (timelinePosts || []).map((post: any) => {
+      const transformedPost: any = {
+        id: post.post_id,
         author: {
-          username: 'usuario1',
-          avatar: '',
+          username: post.username,
+          avatar: post.image_url || '',
         },
-        content: '¡Hola mundo! Este es mi primer post en la red social.',
-        likes: 5,
-        comments: 2,
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: '2',
-        author: {
-          username: 'usuario2',
-          avatar: '',
-        },
-        content: 'Compartiendo algo interesante con todos ustedes.',
-        likes: 12,
-        comments: 4,
-        createdAt: new Date(Date.now() - 3600000).toISOString(),
-      },
-    ];
+        content: post.content,
+        likes: post.likes_count || 0,
+        comments: post.replies_count || 0,
+        createdAt: post.created_at,
+      };
+      
+      if (post.media_url) {
+        transformedPost.image = post.media_url;
+      }
+      return transformedPost;
+    });
 
     return {
       props: {
-        initialPosts: mockPosts,
+        initialPosts: posts,
       },
     };
   } catch (error) {

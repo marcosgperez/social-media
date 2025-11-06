@@ -1,6 +1,7 @@
 import { GetServerSideProps } from 'next';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { signIn, useSession } from 'next-auth/react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { loginUser } from '@/lib/features/auth/authThunks';
@@ -138,6 +139,15 @@ const Login = () => {
               </svg>
               Continuar con Google
             </button>
+
+            <div className="mt-6 text-center">
+              <p className="text-gray-600">
+                ¿No tienes cuenta?{' '}
+                <Link href="/register" className="text-purple-600 font-semibold hover:text-purple-700 transition-colors">
+                  Regístrate aquí
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>

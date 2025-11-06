@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { loginUser, logoutUser } from './authThunks';
+import { loginUser, registerUser, logoutUser } from './authThunks';
 
 export interface User {
   id: string;
@@ -94,6 +94,25 @@ export const authSlice = createSlice({
       }
     });
     builder.addCase(loginUser.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload as string;
+    });
+    builder.addCase(registerUser.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(registerUser.fulfilled, (state, action) => {
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.isAuthenticated = true;
+      state.isLoading = false;
+      state.error = null;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('auth_token', action.payload.token);
+        localStorage.setItem('auth_user', JSON.stringify(action.payload.user));
+      }
+    });
+    builder.addCase(registerUser.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload as string;
     });

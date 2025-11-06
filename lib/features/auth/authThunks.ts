@@ -6,12 +6,22 @@ interface LoginCredentials {
   password: string;
 }
 
-interface LoginResponse {
+interface RegisterCredentials {
+  name: string;
+  username: string;
+  email: string;
+  password: string;
+}
+
+interface AuthResponse {
   success: boolean;
   token: string;
   user: User;
   message?: string;
 }
+
+interface LoginResponse extends AuthResponse {}
+interface RegisterResponse extends AuthResponse {}
 
 export const loginUser = createAsyncThunk(
   'auth/login',
@@ -29,6 +39,31 @@ export const loginUser = createAsyncThunk(
 
       if (!response.ok) {
         return rejectWithValue(data.message || 'Error al iniciar sesión');
+      }
+
+      return { user: data.user, token: data.token };
+    } catch (error) {
+      return rejectWithValue('Error de conexión');
+    }
+  }
+);
+
+export const registerUser = createAsyncThunk(
+  'auth/register',
+  async (credentials: RegisterCredentials, { rejectWithValue }) => {
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      const data: RegisterResponse = await response.json();
+
+      if (!response.ok) {
+        return rejectWithValue(data.message || 'Error al registrarse');
       }
 
       return { user: data.user, token: data.token };
