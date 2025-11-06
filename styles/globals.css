@@ -21,6 +21,26 @@
   .animate-slide-in {
     animation: slide-in 0.3s ease-out;
   }
+  
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+    background: linear-gradient(
+      90deg,
+      #f0f0f0 0%,
+      #e0e0e0 20%,
+      #f0f0f0 40%,
+      #f0f0f0 100%
+    );
+    background-size: 200% 100%;
+  }
+  
+  .animate-like {
+    animation: like-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  
+  .animate-like-icon {
+    animation: like-bounce 0.4s ease-in-out;
+  }
 }
 
 @keyframes slide-in {
@@ -31,5 +51,41 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes like-pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes like-bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.3);
+  }
+  50% {
+    transform: scale(0.9);
+  }
+  75% {
+    transform: scale(1.1);
   }
 }

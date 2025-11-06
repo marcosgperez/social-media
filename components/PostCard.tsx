@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { AiFillLike, AiOutlineLike } from "react-icons/ai";
 import { FaRegComment } from "react-icons/fa6";
 
@@ -29,8 +30,34 @@ export const PostCard = ({
   onComment,
   isLiked = false,
 }: PostCardProps) => {
+  const [isLikedOptimistic, setIsLikedOptimistic] = useState(isLiked);
+  const [likesOptimistic, setLikesOptimistic] = useState(likes);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+
+  useEffect(() => {
+    if (!isPending) {
+      setIsLikedOptimistic(isLiked);
+      setLikesOptimistic(likes);
+    } else {
+      const timer = setTimeout(() => {
+        setIsLikedOptimistic(isLiked);
+        setLikesOptimistic(likes);
+        setIsPending(false);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isLiked, likes, isPending]);
+
   const handleLike = () => {
     if (onLike) {
+      setIsAnimating(true);
+      setIsPending(true);
+      setTimeout(() => setIsAnimating(false), 400);
+      const newLikedState = !isLikedOptimistic;
+      setIsLikedOptimistic(newLikedState);
+      setLikesOptimistic(prev => newLikedState ? prev + 1 : prev - 1);
+      
       onLike(id);
     }
   };
@@ -84,13 +111,18 @@ export const PostCard = ({
         <button
           onClick={handleLike}
           className={`px-4 py-2 border rounded-lg transition-all duration-200 ${
-            isLiked
+            isAnimating ? 'animate-like' : ''
+          } ${
+            isLikedOptimistic
               ? 'bg-purple-50 border-purple-500 text-purple-700 hover:bg-purple-100'
               : 'border-gray-300 bg-white hover:bg-gray-50 hover:border-black'
           }`}
         >
           <span className="flex items-center gap-1">
-            {isLiked ? <AiFillLike /> : <AiOutlineLike />} {likes}
+            <span className={isAnimating ? 'animate-like-icon inline-block' : 'inline-block'}>
+              {isLikedOptimistic ? <AiFillLike /> : <AiOutlineLike />}
+            </span>
+            {likesOptimistic}
           </span>
         </button>
       </div>

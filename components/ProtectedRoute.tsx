@@ -3,13 +3,16 @@ import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { useAppSelector } from '@/lib/hooks';
 import { selectIsAuthenticated, selectAuthLoading } from '@/lib/features/auth/authSlice';
+import { FeedSkeleton } from './FeedSkeleton';
+import { LoginSkeleton } from './LoginSkeleton';
 
 interface Props {
   children: React.ReactNode;
   requireAuth?: boolean;
+  loadingSkeleton?: React.ReactNode;
 }
 
-export const ProtectedRoute = ({ children, requireAuth = true }: Props) => {
+export const ProtectedRoute = ({ children, requireAuth = true, loadingSkeleton }: Props) => {
   const router = useRouter();
   const { data: session, status } = useSession();
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
@@ -27,19 +30,20 @@ export const ProtectedRoute = ({ children, requireAuth = true }: Props) => {
   }, [isAuthenticatedCombined, isLoadingCombined, requireAuth, router]);
 
   if (isLoadingCombined) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-base text-gray-600">Cargando...</p>
-      </div>
-    );
+    if (loadingSkeleton) {
+      return <>{loadingSkeleton}</>;
+    }
+    if (requireAuth) {
+      return <FeedSkeleton />;
+    }
+    return <LoginSkeleton />;
   }
 
   if (requireAuth && !isAuthenticatedCombined) {
     return null;
   }
-
   if (!requireAuth && isAuthenticatedCombined) {
-    return null;
+    return <FeedSkeleton />;
   }
 
   return <>{children}</>;
