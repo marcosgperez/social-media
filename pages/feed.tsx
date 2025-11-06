@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { selectCurrentUser, selectCurrentToken } from '@/lib/features/auth/authSlice';
+import { selectCurrentUser, selectCurrentToken, logout } from '@/lib/features/auth/authSlice';
 import { logoutUser } from '@/lib/features/auth/authThunks';
 import { setPosts, selectPosts, selectLikedPostIds, selectPostsLoading, selectUploadingImage } from '@/lib/features/posts/postsSlice';
 import { fetchUserLikes, likePostAsync, createPost, createPostWithImage } from '@/lib/features/posts/postsThunks';
@@ -83,6 +83,8 @@ const Feed = ({ initialPosts }: Props) => {
 
   const handleLogout = async () => {
     if (session) {
+      dispatch(logout());
+      sessionStorage.removeItem('nextauth_session');
       await signOut({ callbackUrl: '/login' });
     } else {
       await dispatch(logoutUser());

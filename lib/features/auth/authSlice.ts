@@ -47,6 +47,7 @@ export const authSlice = createSlice({
       if (typeof window !== 'undefined') {
         localStorage.removeItem('auth_token');
         localStorage.removeItem('auth_user');
+        sessionStorage.removeItem('nextauth_session');
       }
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
@@ -125,6 +126,7 @@ export const authSlice = createSlice({
       if (typeof window !== 'undefined') {
         localStorage.removeItem('auth_token');
         localStorage.removeItem('auth_user');
+        sessionStorage.removeItem('nextauth_session');
       }
     });
   },
