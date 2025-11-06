@@ -112,6 +112,7 @@ const Feed = ({ initialPosts }: Props) => {
 
   const handleLogout = async () => {
     if (session) {
+      await dispatch(logoutUser());
       await signOut({ callbackUrl: '/login' });
     } else {
       await dispatch(logoutUser());
